@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>SyllaSense Word Analytics</title>
+    <link rel="stylesheet" href="style.css">
+	<script src="script.js"></script>
+  </head>
+  <body>
+	<form id="wcinput">
+	<fieldset>
+	<legend>Analytics Inputs</legend>
+    <div> 
+        <label>Text
+        <textarea id="analytics-text" name="analytics-text" rows=15 placeholder="paste text to analyze in here" required></textarea>
+		</label> 
+    </div>
+    <div> 
+        <label>Sight Words
+        <input id="sight-words" name="sight-words" type="text" placeholder="enter sight words here" >
+		</label> 
+    </div>
+  	<div> 
+	    <button id="analyze" name="analyze" type=button>Analyze</button> 
+    </div> 
+	
+	</fieldset>
+	<fieldset>
+	<div>
+        <label>Elements
+        <textarea id="elements" name="elements" rows=32 placeholder="enter details in fields above" readonly></textarea>
+		</label> 
+	</div>
+	</fieldset>
+	</form>
+  </body>
+</html>

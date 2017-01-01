@@ -1,0 +1,16 @@
+label, input, select, textarea {
+	display:block;
+}
+
+legend, label {
+	color: #59309b;
+	font-weight: bold;
+}
+
+fieldset {
+	width: 80%;
+}
+
+input, textarea {
+	width: 100%;
+}
