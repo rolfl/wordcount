@@ -83,7 +83,17 @@ function WordCountSetup() {
     }
     
     function getSightWords(sight, words) {
-        return "Sight Words\n" + (intersect(sight, words).join(", ") || "n/a");
+        let used = [];
+        for (let i = 0; i < sight.length; i++) {
+            const v = sight[i];
+            for (let j = 0; j < words.length; j++) {
+                if (words[j] === v) {
+                    used.push(v);
+                    break;
+                }
+            }
+        }
+        return "Sight Words\n" + (used.join(", ") || "n/a");
     }
 
     function getBlends(words) {
