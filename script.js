@@ -21,15 +21,20 @@ function WordCountSetup() {
 				"sc", "sk", "sl", "sm", "sn", "sp", "st", "sw", "tr", "tw",
                 "sch", "scr", "spl", "spr", "squ", "str"];
 				
-	const initialSight = ["the", "a", "was", "said"];
+	const initialSight = ["the", "a", "was", "said", "to", "of", "their", "they", "one", "from", "some", "are", "live", "were", "there", "have", "come", "where", "you", "what", "your"];
 	
 	// some special ones plus others from http://grammar.about.com/od/words/a/comsuffixes.htm
 	const suffixes = [ "'s", "s", "ing", "ed",
-	
 				"acy", "al", "ance", "ence", "dom", "er", "or", "ism", "ist",
 				"ity", "ty", "ment", "ness", "ship", "sion", "tion", "ate", "en", "ify",
 				"fy", "ize", "ise", "able", "ible", "al", "esque", "ful", "ic", "ical",
-				"ious", "ous", "ish", "ive", "less", "y"];
+				"ious", "ous", "ish", "ive", "less", "y", "est"];
+				
+	// some common prefixes: https://www.thoughtco.com/common-prefixes-in-english-1692724
+	const prefixes = ["a", "an", "ante", "anti", "auto", "circum", "co", "com", "con", "contra", "contro", 
+				"de", "dis", "en", "ex", "extra", "hetero", "homo", "homeo", "hyper", "il", "im", "in", "ir", 
+				"in ", "inter", "intra", "intro", "macro", "micro", "mono", "non", "omni", "post", "pre", "pro",
+				"sub", "sym", "syn", "tele", "trans", "tri", "un", "uni", "up"];
     
     if (!elButton || !elText ||!elElements || !elSightWords) {
         error("Button/Series/Title/Text not found");
@@ -106,30 +111,42 @@ function WordCountSetup() {
     function getWordCount(words) {
         return "Word Count\n" + words.length;
     }
+	
+	function wordSuffixes(word, suffixlist) {
+		const sfx = suffixlist.find(s => word.endsWith(s) && word.length > s.length);
+		if (!sfx) {
+			return [];
+		}
+		const rest = word.substring(0, word.length - sfx.length);
+		const more = wordSuffixes(rest, suffixlist);
+		const ret = [];
+		if (more.length) {
+			ret.push(...more);
+		}
+		ret.push(sfx)
+		return ret;
+	}
     
-    function getBeginnings(words) {
-        return "Beginnings\nNot Implemented";
-    }
-
     function getEndings(words) {
 		const tosearch = suffixes.slice();
 		// sort longest first.
 		tosearch.sort((a, b) => b.length - a.length);
-		const seen = new Map()
+		const seen = new Map();
+		const seenword = new Map();
+		const ordered = [];
 		words.forEach(w => {
-			for (let i = 0; i < tosearch.length; i++) {
-				const s = tosearch[i];
-				if (s.length >= w.length) {
-					continue;
-				}
-				if (!w.endsWith(s)) {
-					continue;
-				}
-				seen.set(s, 1);
-				break;
+			if (seenword.has(w)) {
+				return;
+			}
+			const sfxlist = wordSuffixes(w, tosearch);
+			sfxlist.forEach(s => seen.set(s, 1));
+			seenword.set(w, sfxlist);
+			if (sfxlist.length) {
+				ordered.push(w);
 			}
 		});
-		
+
+		ordered.sort();
 		const used = [];
 		suffixes.forEach(s => {
 			if (seen.get(s)) {
@@ -137,9 +154,57 @@ function WordCountSetup() {
 			}
 		});
 		
-        return "Endings\n"  + (used.join(", ") || "n/a");
+		const report = ordered.map(w => `${w} -> ${seenword.get(w).join('-')}`).join('\n  ');
+		
+        return `Endings\n${used.join(", ") || "n/a"}\n  ${report}`;
     }
     
+	function wordPrefixes(word, prefixlist) {
+		const pfx = prefixlist.find(p => word.startsWith(p) && word.length > p.length);
+		if (!pfx) {
+			return [];
+		}
+		const rest = word.substring(pfx.length);
+		const more = wordPrefixes(rest, prefixlist);
+		const ret = [pfx];
+		if (more.length) {
+			ret.push(...more);
+		}
+		return ret;
+	}
+    
+    function getBeginnings(words) {
+		const tosearch = prefixes.slice();
+		// sort longest first.
+		tosearch.sort((a, b) => b.length - a.length);
+		const seen = new Map();
+		const seenword = new Map();
+		const ordered = [];
+		words.forEach(w => {
+			if (seenword.has(w)) {
+				return;
+			}
+			const pfxlist = wordPrefixes(w, tosearch);
+			pfxlist.forEach(p => seen.set(p, 1));
+			seenword.set(w, pfxlist);
+			if (pfxlist.length) {
+				ordered.push(w);
+			}
+		});
+
+		ordered.sort();
+		const used = [];
+		prefixes.forEach(s => {
+			if (seen.get(s)) {
+				used.push(s);
+			}
+		});
+		
+		const report = ordered.map(w => `${w} -> ${seenword.get(w).join('-')}`).join('\n  ');
+		
+        return `Beginnings\n${used.join(", ") || "n/a"}\n  ${report}`;
+    }
+
     function getWordList(words) {
         return "Words normalized\n'" + words.join("' '") + "'";
     }
