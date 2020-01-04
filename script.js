@@ -42,6 +42,8 @@ function WordCountSetup() {
 
     function getWords(data) {
         data = data.toLocaleLowerCase();
+        // Hyphenated words become separated
+        data = data.replace(/\b-\b/g, "  ");
         data = data.replace(/\s*\n/g, "  ");
         data = data.replace(/\s*\r/g, "  ");
         data = data.replace(/[^a-z ]/gi, "");
