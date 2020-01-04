@@ -44,7 +44,7 @@ function WordCountSetup() {
         data = data.toLocaleLowerCase();
         data = data.replace(/\s*\n/g, "  ");
         data = data.replace(/\s*\r/g, "  ");
-        data = data.replace(/[-",!?.0-9]/g, "");
+        data = data.replace(/[^a-z ]/gi, "");
         data = data.trim();
         let words = data.split(/ +/g);
         return words
