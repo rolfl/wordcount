@@ -14,7 +14,7 @@ function WordCountSetup() {
     
     const vowels = "aeiou".split("");
     const consonants = "bcdfghjklmnpqrstvwxyz".split("");
-    const digraphs = ["ck", "th", "sh", "ch", "ph", "wh", "gh", "kn", "wr", "mb", "qu"];
+    const digraphs = ["ck", "th", "sh", { text: "ch", re: /(?<!t)ch/}, "ph", "wh", "gh", "kn", "wr", "mb", "qu"];
     const trigraphs = ["dge", "tch"];
     const consonantBlends = [
                 "bl", "br", "cl", "cr", "dr", "fl", "fr", "gl", "gr", "pl", "pr",
@@ -31,7 +31,7 @@ function WordCountSetup() {
 				"ious", "ous", "ish", "ive", "less", "y", "est"];
 				
 	// some common prefixes: https://www.thoughtco.com/common-prefixes-in-english-1692724
-	const prefixes = ["a", "an", "ante", "anti", "auto", "circum", "co", "com", "con", "contra", "contro", 
+	const prefixes = ["a", "ad", "an", "ante", "anti", "auto", "circum", "co", "com", "con", "contra", "contro", 
 				"de", "dis", "en", "ex", "extra", "hetero", "homo", "homeo", "hyper", "il", "im", "in", "ir", 
 				"in ", "inter", "intra", "intro", "macro", "micro", "mono", "non", "omni", "post", "pre", "pro",
 				"sub", "sym", "syn", "tele", "trans", "tri", "un", "uni", "up"];
@@ -39,6 +39,10 @@ function WordCountSetup() {
     if (!elButton || !elText ||!elElements || !elSightWords) {
         error("Button/Series/Title/Text not found");
     }
+	
+	function toRegex(terms) {
+		return terms.map(m => (typeof m === 'string' ? { text: m, re: new RegExp(m) } : m))
+	}
 
     function getWords(data) {
         data = data.toLocaleLowerCase();
@@ -66,6 +70,74 @@ function WordCountSetup() {
         return used;
     }
 	
+	function complement(universe, found) {
+		return universe.filter(c => !found.includes(c));
+	}
+	
+	function matchComp(match) {
+		if (typeof match === 'string') {
+			return word => word.includes(match);
+		}
+		if (match.re) {
+			return word => word.match(match.re);
+		}
+	}
+
+	function innerMatch(word, tomatch, firstonly) {
+		// we want this to return all the text values for all matching regexes.
+		const found = tomatch.map(s => ({
+			text: s.text,
+			found: s.re.test(word)
+		})).filter(f => f.found).map(f => f.text);
+		if (firstonly && found.length) {
+			return [found[0]];
+		}
+		return found;
+	}
+	
+    function getMatches(words, tomatch, firstonly) {
+		const rematch = toRegex(tomatch);
+		const seen = new Map();
+		const seenword = new Map();
+		const sortedwords = [...words].sort();
+		const ordered = [];
+		sortedwords.forEach(word => {
+			if (seenword.has(word)) {
+				return;
+			}
+			const matchedlist = innerMatch(word, rematch, firstonly);
+			matchedlist.forEach(m => {
+				if (!seen.has(m)) {
+					seen.set(m, []);
+				}
+				seen.get(m).push(word);
+			});
+			seenword.set(word, matchedlist);
+			if (matchedlist.length) {
+				ordered.push(word);
+			}
+		});
+
+		ordered.sort();
+		const used = [];
+		const usedloc = [];
+		rematch.forEach(rem => {
+			if (seen.get(rem.text)) {
+				used.push(rem.text);
+				usedloc.push(`${rem.text}: ${seen.get(rem.text).join(', ')}`);
+			}
+		});
+		
+		if (!used.length) {
+			return "n/a";
+		}
+		
+		const report = ordered.map(word => `${word} -> ${seenword.get(word).join(', ')}`).join('\n  ');
+		const locations = usedloc.join('\n  ');
+		
+        return `${used.join(", ")}\n  ${locations}\n  ----\n  ${report}`;
+    }
+	
 	function beginnings(words) {
 		// add y in as a vowel
 		const vwls = "[" + vowels.join("") + "y]";
@@ -74,21 +146,23 @@ function WordCountSetup() {
 	}
     
     function getVowels(words) {
-        return "Vowels\n" + (intersect(vowels, words).join(", ") || "n/a");
+		const found = intersect(vowels, words);
+        return "Vowels\n" + (found.join(", ") || "n/a") + `\n (missing ${complement(vowels, found).join(', ')})`;
+    }
+    
+    function getConsonants(words) {
+		const found = intersect(consonants, words);
+        return "Consonants\n" + (found.join(", ") || "n/a") + `\n (missing ${complement(consonants, found).join(', ')})`;
     }
     
     function getDigraphs(words) {
-        return "Digraphs\n" + (intersect(digraphs, words).join(", ") || "n/a");
+        return "Digraphs\n" + getMatches(words, digraphs);
     }
 
     function getTrigraphs(words) {
-        return "Trigraphs\n" + (intersect(trigraphs, words).join(", ") || "n/a");
+        return "Trigraphs\n" + getMatches(words, trigraphs);
     }
 
-    function getConsonants(words) {
-        return "Consonants\n" + (intersect(consonants, words).join(", ") || "n/a");
-    }
-    
     function getSightWords(sight, words) {
         let used = [];
         for (let i = 0; i < sight.length; i++) {
@@ -221,9 +295,9 @@ function WordCountSetup() {
         
         let parts = [
             getVowels(words),
+            getConsonants(words),
             getDigraphs(words),
             getTrigraphs(words),
-            getConsonants(words),
             getSightWords(sight, words),
             getBlends(words),
             getWordCount(words),
