@@ -55,7 +55,7 @@ function WordCountSetup() {
         let words = data.split(/ +/g);
         return words
     }
-    
+
     function intersect(letters, words) {
         let used = [];
         for (let i = 0; i < letters.length; i++) {
@@ -285,7 +285,17 @@ function WordCountSetup() {
         return "Words normalized\n'" + words.join("' '") + "'";
     }
 
-    
+	function getSpaceIssues(data) {
+		const marked = data
+			.trim()
+			.split(/$/m)
+			.map(line => line
+				.split(/  /)
+				.map(clause => clause.replace(/ /g, '#!#')).join('  '))
+			.join('\n');
+		return "Incorrect double-spacing (each incorrect space marked with #!#)\n" + marked;
+	}
+        
 
     function processBook() {
         const book = elText.value;
@@ -303,7 +313,8 @@ function WordCountSetup() {
             getWordCount(words),
             getBeginnings(words),
             getEndings(words),
-            getWordList(words)
+            getWordList(words),
+			getSpaceIssues(book)
         ];
         
         let output = parts.join("\n\n");
