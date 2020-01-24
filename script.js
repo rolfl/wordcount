@@ -288,12 +288,12 @@ function WordCountSetup() {
 	function getSpaceIssues(data) {
 		const marked = data
 			.trim()
-			.split(/$/m)
+			.split(/[\r\n]+/m)
 			.map(line => line
 				.split(/  /)
-				.map(clause => clause.replace(/ /g, '#!#')).join('  '))
-			.join('\n');
-		return "Incorrect double-spacing (each incorrect space marked with #!#)\n" + marked;
+				.map(clause => clause.replace(/ /g, '>!<')).join('  '))
+			.join('\r\n');
+		return "Incorrect double-spacing (each incorrect space marked with >!<)\n" + marked;
 	}
         
 
