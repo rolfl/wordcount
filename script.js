@@ -28,7 +28,7 @@ function WordCountSetup() {
 				"acy", "al", "ance", "ence", "dom", "er", "or", "ism", "ist",
 				"ity", "ty", "ment", "ness", "ship", "sion", "tion", "ate", "en", "ify",
 				"fy", "ize", "ise", "able", "ible", "al", "esque", "ful", "ic", "ical",
-				"ious", "ous", "ish", "ive", "less", "y", "est"];
+				"ious", "ous", "ish", "ive", "less", "y", "est", "ly"];
 				
 	// some common prefixes: https://www.thoughtco.com/common-prefixes-in-english-1692724
 	const prefixes = ["a", "ad", "an", "ante", "anti", "auto", "circum", "co", "com", "con", "contra", "contro", 
